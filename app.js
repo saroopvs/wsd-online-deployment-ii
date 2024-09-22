@@ -4,10 +4,15 @@ import { renderMiddleware } from "./middlewares/renderMiddleware.js";
 const app = new Application();
 const router = new Router();
 
+let visitCount = 0;
+
 app.use(renderMiddleware);
 
 router.get("/", ({ render }) => render("index.eta"));
-router.get("/visits", ({ render }) => render("visits.eta"));
+router.get("/visits", (ctx) => {
+  visitCount++; 
+  ctx.render("visits.eta", { count: visitCount });
+});
 router.get("/meaning", ({ render }) => render("meaning.eta"));
 
 app.use(router.routes());
