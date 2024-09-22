@@ -1,25 +1,33 @@
-import { Application, Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
-import { renderMiddleware } from "./middlewares/renderMiddleware.js";
-
-const app = new Application();
-const router = new Router();
+import { serve } from "https://deno.land/std@0.222.1/http/server.ts";
 
 let visitCount = 0;
 
-app.use(renderMiddleware);
+const handler = (request) => {
+  const url = new URL(request.url);
 
-router.get("/", ({ render }) => render("index.eta"));
-router.get("/visits", (ctx) => {
-  visitCount++; 
-  ctx.render("visits.eta", { count: visitCount });
-});
-router.get("/meaning", ({ render }) => render("meaning.eta"));
+  // Handle /visits path
+  if (url.pathname === "/visits") {
+    visitCount++;
+    const body = `<html><body>Visits: ${visitCount}</body></html>`;
+    return new Response(body, {
+      headers: { "Content-Type": "text/html;charset=UTF-8" },
+    });
 
-app.use(router.routes());
+  // Handle /meaning path
+  } else if (url.pathname === "/meaning") {
+    return new Response("Seeking truths beyond meaning of life, you will find 43.", {
+      headers: { "Content-Type": "text/plain;charset=UTF-8" },
+    });
 
-if (!Deno.env.get("TEST_ENVIRONMENT")) {
-  app.listen({ port: 7777 });
-}
+  // Handle other paths
+  } else {
+    return new Response("Nothing here yet.", {
+      headers: { "Content-Type": "text/plain;charset=UTF-8" },
+    });
+  }
+};
 
-export default app;
+// Start the server
+console.log("Server running on http://localhost:7777");
+serve(handler, { port: 7777 });
 
