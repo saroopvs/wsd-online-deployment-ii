@@ -1,26 +1,20 @@
-import { serve } from "./deps.js";
-import { configure, renderFile } from "./deps.js";
+import { Application, Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
+import { renderMiddleware } from "./middlewares/renderMiddleware.js";
 
-configure({
-  views: `${Deno.cwd()}/views/`,
-});
+const app = new Application();
+const router = new Router();
 
-const responseDetails = {
-  headers: { "Content-Type": "text/html;charset=UTF-8" },
-};
+app.use(renderMiddleware);
 
-const data = {
-  count: 0,
-};
+router.get("/", ({ render }) => render("index.eta"));
+router.get("/visits", ({ render }) => render("visits.eta"));
+router.get("/meaning", ({ render }) => render("meaning.eta"));
 
-const handleRequest = async (request) => {
-  const url = new URL(request.url);
-  if (url.pathname === "/count") {
-    data.count++;
-    return new Response(await renderFile("count.eta", data), responseDetails);
-  }
+app.use(router.routes());
 
-  return new Response("Hello you!");
-};
+if (!Deno.env.get("TEST_ENVIRONMENT")) {
+  app.listen({ port: 7777 });
+}
 
-serve(handleRequest, { port: 7777 });
+export default app;
+
